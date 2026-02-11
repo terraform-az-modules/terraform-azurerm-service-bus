@@ -27,7 +27,12 @@ This directory contains an example usage of the **terraform-azure-servicebus**. 
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_service_bus"></a> [service_bus](#module\service_bus) | ../../ | n/a |
+| <a name="module_log-analytics"></a> [log-analytics](#module\_log-analytics) | terraform-az-modules/log-analytics/azurerm | 1.0.2 |
+| <a name="module_private_dns"></a> [private\_dns](#module\_private\_dns) | terraform-az-modules/private-dns/azurerm | 1.0.4 |
 | <a name="module_resource_group"></a> [resource\_group](#module\_resource\_group) | terraform-az-modules/resource-group/azurerm | 1.0.3 |
+| <a name="module_subnet"></a> [subnet](#module\_subnet) | terraform-az-modules/subnet/azurerm | 1.0.1 |
+| <a name="module_vnet"></a> [vnet](#module\_vnet) | terraform-az-modules/vnet/azurerm | 1.0.3 |
+| <a name="module_vault"></a> [vnet](#module\_vault) | terraform-az-modules/key-vault/azurerm | 1.1.0 |
 
 
 ---
