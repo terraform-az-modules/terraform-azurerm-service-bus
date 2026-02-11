@@ -48,7 +48,7 @@ output "servicebus_namespace_authorization" {
   }
 }
 
-output "servicebus_primary_namspace_cmk_id" {
+output "servicebus_primary_namespace_cmk_id" {
   description = "The Primary Namespace Customer Managed Key ID."
   value       = try(azurerm_servicebus_namespace_customer_managed_key.main[0].id, null)
 }

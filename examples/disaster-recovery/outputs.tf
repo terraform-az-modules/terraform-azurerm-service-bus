@@ -7,7 +7,7 @@ output "servicebus_namespace_name" {
   value       = module.service_bus.servicebus_primary_namespace_name
 }
 
-output "servicebus_seondary_namespace_name" {
+output "servicebus_secondary_namespace_name" {
   description = "The Name of ServiceBus Namespace."
   value       = module.service_bus.servicebus_secondary_namespace_name
 }

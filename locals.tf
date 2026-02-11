@@ -71,7 +71,7 @@ locals {
         name               = ""
         sql_filter         = ""
         action             = ""
-        correaltion_filter = null
+        correltion_filter = null
         }, rule, {
         topic_name        = subscription.topic_name
         subscription_name = subscription.name

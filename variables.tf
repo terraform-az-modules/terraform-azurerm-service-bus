@@ -15,16 +15,8 @@ variable "resource_position_prefix" {
 variable "custom_name" {
   type        = string
   default     = null
-  description = <<EOT
-Controls the placement of the resource type keyword (e.g., "vnet", "ddospp") in the resource name.
-
-- If true, the keyword is prepended: "vnet-core-dev".
-- If false, the keyword is appended: "core-dev-vnet".
-
-This helps maintain naming consistency based on organizational preferences.
-EOT
+  description = "Optional custom name to override the base name in tags."
 }
-
 
 variable "label_order" {
   type        = list(any)
@@ -158,13 +150,13 @@ variable "premium_messaging_partitions" {
 
 variable "local_auth_enabled" {
   type        = bool
-  default     = true
+  default     = false
   description = "Whether or not SAS authentication is enabled for the Service Bus namespace."
 }
 
 variable "public_network_access_enabled" {
   type        = bool
-  default     = true
+  default     = false
   description = "public network access enabled for the Service Bus Namespace"
 }
 
@@ -181,7 +173,7 @@ variable "minimum_tls_version" {
 
 variable "infrastructure_encryption_enabled" {
   type        = bool
-  default     = false
+  default     = true
   description = "Enable double encryption (infrastructure encryption) for Service Bus Namespace"
 }
 
