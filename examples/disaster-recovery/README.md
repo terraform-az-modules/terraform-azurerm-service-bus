@@ -27,12 +27,7 @@ This directory contains an example usage of the **terraform-azure-servicebus**. 
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_service_bus"></a> [service_bus](#module\service_bus) | ../../ | n/a |
-| <a name="module_log-analytics"></a> [log-analytics](#module\_log-analytics) | terraform-az-modules/log-analytics/azurerm | 1.0.2 |
-| <a name="module_private_dns"></a> [private\_dns](#module\_private\_dns) | terraform-az-modules/private-dns/azurerm | 1.0.4 |
 | <a name="module_resource_group"></a> [resource\_group](#module\_resource\_group) | terraform-az-modules/resource-group/azurerm | 1.0.3 |
-| <a name="module_subnet"></a> [subnet](#module\_subnet) | terraform-az-modules/subnet/azurerm | 1.0.1 |
-| <a name="module_vnet"></a> [vnet](#module\_vnet) | terraform-az-modules/vnet/azurerm | 1.0.3 |
-| <a name="module_vault"></a> [vnet](#module\_vault) | terraform-az-modules/key-vault/azurerm | 1.1.0 |
 
 
 ---
@@ -54,9 +49,11 @@ No input variables are defined in this example.
 | Name | Description |
 |------|-------------|
 | <a name="output_servicebus_namespace_name"></a> [servicebus\_namespace\_name](#output\_servicebus\_namespace\_name) | The Name of the Service Bus Namespace. |
+| <a name="output_servicebus_secondary_namespace_name"></a> [servicebus\_secondary_namespace\_name](#output\_secondary_servicebus\_namespace\_name) | The Name of the Secondary Service Bus Namespace. |
 | <a name="output_servicebus_queue_id"></a> [servicebus\_queue\_id](#output\_servicebus\_queue\_id) | The ID of the Service Bus Queue. |
 | <a name="output_servicebus_queue_auth_rule"></a> [servicebus\_queue\_auth_rule](#output\_servicebus\_queue\_auth_rule) | The Authorization Rule for the Service Bus Queue. |
 | <a name="output_servicebus_topics_id"></a> [servicebus\_topics\_id](#output\_servicebus\_topics\_id) | The ID of the Service Bus Topics. |
 | <a name="output_servicebus_topics_auth_rule"></a> [servicebus\_topics\_auth_rule](#output\_servicebus\_topics\_auth_rule) | The Authorization Rule for the Service Bus Topics. |
 | <a name="output_servicebus_subscriptions_id"></a> [servicebus\_subscriptions\_id](#output\_servicebus\_subscriptions\_id) | The ID of the Service Bus Topic's Subscription. |
+| <a name="output_servicebus_disaster_recovery_id"></a> [servicebus\_disaster_recovery\_id](#output\_servicebus\_disaster_recovery\_id) | The ID of the Service Bus Namespace Disaster Recovery Config. |
 <!-- END_TF_DOCS -->
