@@ -189,13 +189,10 @@ variable "encryption" {
   description = "Enable customer-managed encryption for the ServiceBus using Key Vault."
 }
 
-variable "identity" {
-  description = "Managed identity configuration."
-  type = object({
-    type         = string
-    identity_ids = optional(list(string))
-  })
-  default = null
+variable "identity_ids" {
+  type        = list(string)
+  default     = null
+  description = "List of user managed identity IDs for MSSQL DB."
 }
 
 variable "network_rule_set" {
@@ -220,25 +217,87 @@ variable "enable_disaster_recovery_config" {
   description = "Enable or Disable Creation of Disaster Recovery Config for Service Bus Namespace."
 }
 
-
-
 variable "topics" {
-  type        = any
+  type = list(object({
+    name                                    = string
+    status                                  = optional(string, "Active")
+    auto_delete_on_idle                     = optional(string)
+    default_message_ttl                     = optional(string)
+    duplicate_detection_history_time_window = optional(string)
+    batched_operations_enabled              = optional(bool, null)
+    express_enabled                         = optional(bool, false)
+    partitioning_enabled                    = optional(bool, false)
+    max_message_size_in_kilobytes           = optional(number)
+    max_size_in_megabytes                   = optional(number)
+    enable_duplicate_detection              = optional(bool, null)
+    enable_ordering                         = optional(bool, null)
+    authorization_rules = optional(list(object({
+      name   = string
+      rights = list(string)
+    })), [])
+    subscriptions = optional(list(object({
+      name                                        = string
+      max_delivery_count                          = optional(number, 10)
+      auto_delete_on_idle                         = optional(string)
+      default_message_ttl                         = optional(string)
+      lock_duration                               = optional(string)
+      enable_dead_lettering_on_message_expiration = optional(bool, false)
+      dead_lettering_on_filter_evaluation_error   = optional(bool, null)
+      enable_batched_operations                   = optional(bool, null)
+      enable_session                              = optional(bool, false)
+      forward_to                                  = optional(string)
+      status                                      = optional(string, "Active")
+      client_scoped_subscription_enabled          = optional(bool, null)
+      client_scoped_subscription                  = optional(string)
+      rules = optional(list(object({
+        name              = string
+        sql_filter        = optional(string, "")
+        action            = optional(string, "")
+        correltion_filter = optional(any, null)
+      })), [])
+    })), [])
+  }))
   default     = []
-  description = "List of topics."
+  description = "List of topics with subscriptions and authorization rules."
 }
 
 variable "authorization_rules" {
-  type        = any
+  type = list(object({
+    name   = string
+    rights = list(string)
+  }))
   default     = []
   description = "List of namespace authorization rules."
 }
 
 variable "queues" {
-  type        = any
+  type = list(object({
+    name                                        = string
+    lock_duration                               = optional(string)
+    max_message_size_in_kilobytes               = optional(number)
+    max_size_in_megabytes                       = optional(number)
+    enable_duplicate_detection                  = optional(bool, false)
+    enable_session                              = optional(bool, false)
+    default_message_ttl                         = optional(string)
+    enable_dead_lettering_on_message_expiration = optional(bool, false)
+    duplicate_detection_history_time_window     = optional(string)
+    max_delivery_count                          = optional(number, 10)
+    status                                      = optional(string, "Active")
+    batched_operations_enabled                  = optional(bool, null)
+    auto_delete_on_idle                         = optional(string)
+    partitioning_enabled                        = optional(bool, false)
+    express_enabled                             = optional(bool, false)
+    forward_to                                  = optional(string)
+    forward_dead_lettered_messages_to           = optional(string)
+    authorization_rules = optional(list(object({
+      name   = string
+      rights = list(string)
+    })), [])
+  }))
   default     = []
-  description = "List of queues."
+  description = "List of queues with optional authorization rules."
 }
+
 
 ##-----------------------------------------------------------------------------
 ## Diagnostic Setting Variables

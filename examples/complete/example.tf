@@ -78,7 +78,6 @@ module "log-analytics" {
   log_analytics_workspace_sku = "PerGB2018"
   resource_group_name         = module.resource_group.resource_group_name
   location                    = module.resource_group.resource_group_location
-  log_analytics_workspace_id  = module.log-analytics.workspace_id
 }
 
 # ------------------------------------------------------------------------------
@@ -126,8 +125,8 @@ module "vault" {
       principal_id         = data.azurerm_client_config.current_client_config.object_id
     }
   }
-
-  diagnostic_setting_enable = true
+  diagnostic_setting_enable  = true
+  log_analytics_workspace_id = module.log-analytics.workspace_id
 }
 
 ##----------------------------------------------------------------------------

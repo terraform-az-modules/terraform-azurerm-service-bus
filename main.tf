@@ -22,7 +22,7 @@ module "labels" {
 ##-----------------------------------------------------------------------------
 resource "azurerm_key_vault_key" "main" {
   depends_on      = [azurerm_role_assignment.identity_assigned, azurerm_user_assigned_identity.identity]
-  count           = var.enabled && var.encryption ? 1 : 0
+  count           = var.enabled ? 1 : 0
   name            = var.resource_position_prefix ? format("cmk-key-servicebus-%s", local.name) : format("%s-cmk-key-servicebus", local.name)
   key_vault_id    = var.key_vault_id
   key_type        = var.key_type
@@ -42,7 +42,7 @@ resource "azurerm_key_vault_key" "main" {
 }
 
 resource "azurerm_role_assignment" "identity_assigned" {
-  count                = var.enabled && var.encryption && var.identity == null ? 1 : 0
+  count                = var.enabled && var.encryption ? 1 : 0
   principal_id         = azurerm_user_assigned_identity.identity[0].principal_id
   role_definition_name = "Key Vault Crypto User"
   scope                = var.key_vault_id
@@ -53,7 +53,7 @@ resource "azurerm_role_assignment" "identity_assigned" {
 ## Managed Identity - Deploy user-assigned identity for ServiceBus encryption
 ##-----------------------------------------------------------------------------
 resource "azurerm_user_assigned_identity" "identity" {
-  count               = var.enabled && var.encryption && var.identity == null ? 1 : 0
+  count               = var.enabled && var.encryption ? 1 : 0
   location            = var.location
   name                = var.resource_position_prefix ? format("mid-servicebus-%s", local.name) : format("%s-mid-servicebus", local.name)
   resource_group_name = var.resource_group_name
@@ -76,10 +76,10 @@ resource "azurerm_servicebus_namespace" "primary" {
   minimum_tls_version           = var.minimum_tls_version
 
   dynamic "customer_managed_key" {
-    for_each = var.identity.type == "UserAssigned" || var.identity == null ? [1] : []
+    for_each = var.encryption || var.identity_ids != null ? [1] : []
     content {
       key_vault_key_id                  = azurerm_key_vault_key.main[0].id
-      identity_id                       = var.identity == null ? azurerm_user_assigned_identity.identity[0].id : var.identity.identity_ids
+      identity_id                       = var.encryption ? azurerm_user_assigned_identity.identity[0].id : var.identity_ids[0]
       infrastructure_encryption_enabled = var.infrastructure_encryption_enabled
     }
   }
@@ -103,12 +103,9 @@ resource "azurerm_servicebus_namespace" "primary" {
     }
   }
 
-  dynamic "identity" {
-    for_each = var.identity != null || (var.encryption && var.identity == null) ? [1] : []
-    content {
-      type         = var.identity != null ? var.identity.type : "UserAssigned"
-      identity_ids = var.identity != null ? var.identity.identity_ids : [azurerm_user_assigned_identity.identity[0].id]
-    }
+  identity {
+    type         = var.encryption || var.identity_ids != null ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+    identity_ids = var.encryption ? [azurerm_user_assigned_identity.identity[0].id] : var.identity_ids
   }
   tags       = module.labels.tags
   depends_on = [azurerm_key_vault_key.main]
@@ -127,10 +124,10 @@ resource "azurerm_servicebus_namespace" "secondary" {
   minimum_tls_version           = var.minimum_tls_version
 
   dynamic "customer_managed_key" {
-    for_each = var.encryption ? [1] : []
+    for_each = var.encryption || var.identity_ids != null ? [1] : []
     content {
       key_vault_key_id                  = azurerm_key_vault_key.main[0].id
-      identity_id                       = azurerm_user_assigned_identity.identity[0].id
+      identity_id                       = var.encryption ? azurerm_user_assigned_identity.identity[0].id : var.identity_ids[0]
       infrastructure_encryption_enabled = var.infrastructure_encryption_enabled
     }
   }
@@ -154,12 +151,9 @@ resource "azurerm_servicebus_namespace" "secondary" {
     }
   }
 
-  dynamic "identity" {
-    for_each = var.identity != null || (var.encryption && var.identity == null) ? [1] : []
-    content {
-      type         = var.identity != null ? var.identity.type : "UserAssigned"
-      identity_ids = var.identity != null ? var.identity.identity_ids : [azurerm_user_assigned_identity.identity[0].id]
-    }
+  identity {
+    type         = var.encryption || var.identity_ids != null ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+    identity_ids = var.encryption ? [azurerm_user_assigned_identity.identity[0].id] : var.identity_ids
   }
   tags       = module.labels.tags
   depends_on = [azurerm_servicebus_namespace.primary]
@@ -176,7 +170,7 @@ resource "azurerm_servicebus_namespace_authorization_rule" "main" {
 }
 
 resource "azurerm_servicebus_namespace_customer_managed_key" "main" {
-  count                             = var.enabled && try(azurerm_servicebus_namespace.primary[0].identity[0].type, "") == "SystemAssigned" ? 1 : 0
+  count                             = var.enabled && try(azurerm_servicebus_namespace.primary[0].identity[0].type == "SystemAssigned") ? 1 : 0
   namespace_id                      = azurerm_servicebus_namespace.primary[0].id
   key_vault_key_id                  = azurerm_key_vault_key.main[0].id
   infrastructure_encryption_enabled = var.infrastructure_encryption_enabled
@@ -209,12 +203,15 @@ resource "azurerm_servicebus_topic" "main" {
 }
 
 resource "azurerm_servicebus_topic_authorization_rule" "main" {
-  count      = var.enabled ? length(local.topic_authorization_rules) : 0
-  name       = local.topic_authorization_rules[count.index].name
-  topic_id   = azurerm_servicebus_topic.main[count.index].id
-  listen     = contains(local.topic_authorization_rules[count.index].rights, "listen") ? true : false
-  send       = contains(local.topic_authorization_rules[count.index].rights, "send") ? true : false
-  manage     = contains(local.topic_authorization_rules[count.index].rights, "manage") ? true : false
+  count = var.enabled ? length(local.topic_authorization_rules) : 0
+  name  = local.topic_authorization_rules[count.index].name
+  topic_id = lookup(
+    { for t in azurerm_servicebus_topic.main : t.name => t.id },
+    local.topic_authorization_rules[count.index].topic_name
+  )
+  listen     = contains(local.topic_authorization_rules[count.index].rights, "listen")
+  send       = contains(local.topic_authorization_rules[count.index].rights, "send")
+  manage     = contains(local.topic_authorization_rules[count.index].rights, "manage")
   depends_on = [azurerm_servicebus_topic.main]
 }
 
@@ -246,12 +243,15 @@ resource "azurerm_servicebus_subscription" "main" {
 }
 
 resource "azurerm_servicebus_subscription_rule" "main" {
-  count           = var.enabled ? length(local.topic_subscription_rules) : 0
-  name            = local.topic_subscription_rules[count.index].name
-  subscription_id = azurerm_servicebus_subscription.main[count.index].id
-  filter_type     = local.topic_subscription_rules[count.index].sql_filter != "" ? "SqlFilter" : null
-  sql_filter      = local.topic_subscription_rules[count.index].sql_filter
-  action          = local.topic_subscription_rules[count.index].action
+  count = var.enabled ? length(local.topic_subscription_rules) : 0
+  name  = local.topic_subscription_rules[count.index].name
+  subscription_id = lookup(
+    { for s in azurerm_servicebus_subscription.main : "${s.topic_name}-${s.name}" => s.id },
+    "${local.topic_subscription_rules[count.index].topic_name}-${local.topic_subscription_rules[count.index].subscription_name}"
+  )
+  filter_type = local.topic_subscription_rules[count.index].sql_filter != "" ? "SqlFilter" : null
+  sql_filter  = local.topic_subscription_rules[count.index].sql_filter
+  action      = local.topic_subscription_rules[count.index].action
 
   dynamic "correlation_filter" {
     for_each = local.topic_subscription_rules[count.index].correlation_filter == "CorrelationFilter" && local.topic_subscription_rules[count.index].correlation_filter != null ? [local.topic_subscription_rules[count.index].correlation_filter] : []
