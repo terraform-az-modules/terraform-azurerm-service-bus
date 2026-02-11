@@ -68,9 +68,9 @@ locals {
   topic_subscription_rules = flatten([
     for subscription in local.topic_subscriptions : [
       for rule in subscription.rules : merge({
-        name               = ""
-        sql_filter         = ""
-        action             = ""
+        name              = ""
+        sql_filter        = ""
+        action            = ""
         correltion_filter = null
         }, rule, {
         topic_name        = subscription.topic_name

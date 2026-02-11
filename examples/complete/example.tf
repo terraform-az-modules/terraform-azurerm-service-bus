@@ -127,7 +127,7 @@ module "vault" {
     }
   }
 
-  diagnostic_setting_enable  = true
+  diagnostic_setting_enable = true
 }
 
 ##----------------------------------------------------------------------------
