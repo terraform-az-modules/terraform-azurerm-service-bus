@@ -54,9 +54,11 @@ No input variables are defined in this example.
 | Name | Description |
 |------|-------------|
 | <a name="output_servicebus_namespace_name"></a> [servicebus\_namespace\_name](#output\_servicebus\_namespace\_name) | The Name of the Service Bus Namespace. |
+| <a name="output_servicebus_secondary_namespace_name"></a> [servicebus\_secondary_namespace\_name](#output\_secondary_servicebus\_namespace\_name) | The Name of the Secondary Service Bus Namespace. |
 | <a name="output_servicebus_queue_id"></a> [servicebus\_queue\_id](#output\_servicebus\_queue\_id) | The ID of the Service Bus Queue. |
 | <a name="output_servicebus_queue_auth_rule"></a> [servicebus\_queue\_auth_rule](#output\_servicebus\_queue\_auth_rule) | The Authorization Rule for the Service Bus Queue. |
 | <a name="output_servicebus_topics_id"></a> [servicebus\_topics\_id](#output\_servicebus\_topics\_id) | The ID of the Service Bus Topics. |
 | <a name="output_servicebus_topics_auth_rule"></a> [servicebus\_topics\_auth_rule](#output\_servicebus\_topics\_auth_rule) | The Authorization Rule for the Service Bus Topics. |
 | <a name="output_servicebus_subscriptions_id"></a> [servicebus\_subscriptions\_id](#output\_servicebus\_subscriptions\_id) | The ID of the Service Bus Topic's Subscription. |
+| <a name="output_servicebus_disaster_recovery_id"></a> [servicebus\_disaster_recovery\_id](#output\_servicebus\_disaster_recovery\_id) | The ID of the Service Bus Namespace Disaster Recovery Config. |
 <!-- END_TF_DOCS -->
