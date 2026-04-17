@@ -1,7 +1,6 @@
 ##-----------------------------------------------------------------------------
 ## Outputs
 ##-----------------------------------------------------------------------------
-
 output "servicebus_primary_namespace_id" {
   description = "The Service Bus Primary Namespace ID."
   value       = azurerm_servicebus_namespace.primary[0].id
@@ -121,8 +120,3 @@ output "servicebus_topic_authorization" {
     }
   }
 }
-
-
-
-
-
