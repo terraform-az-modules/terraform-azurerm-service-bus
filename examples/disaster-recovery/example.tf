@@ -134,8 +134,7 @@ module "vault" {
 ##------------------------------------------------------------------------
 
 module "service_bus" {
-  source = "../.."
-
+  source                       = "../.."
   name                         = local.name
   environment                  = local.environment
   resource_group_name          = module.resource_group.resource_group_name
@@ -143,6 +142,7 @@ module "service_bus" {
   sku                          = "Premium"
   capacity                     = 1
   premium_messaging_partitions = 1
+  secondary_location           = "North Europe"
   key_vault_id                 = module.vault.id
   queues = [
     {
@@ -175,7 +175,8 @@ module "service_bus" {
       ]
     }
   ]
-  enable_diagnostic          = true
-  log_analytics_workspace_id = module.log-analytics.workspace_id
-  depends_on                 = [module.vault]
+  enable_disaster_recovery_config = true
+  enable_diagnostic               = true
+  log_analytics_workspace_id      = module.log-analytics.workspace_id
+  depends_on                      = [module.vault]
 }
