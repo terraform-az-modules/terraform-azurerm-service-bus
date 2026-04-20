@@ -103,7 +103,7 @@ module "private_dns_zone" {
 # ------------------------------------------------------------------------------
 module "vault" {
   source                        = "terraform-az-modules/key-vault/azurerm"
-  version                       = "1.1.0"
+  version                       = "2.3.0"
   name                          = local.name
   environment                   = local.environment
   label_order                   = local.label_order
