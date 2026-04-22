@@ -71,7 +71,7 @@ module "subnet" {
 
 module "log-analytics" {
   source                      = "terraform-az-modules/log-analytics/azurerm"
-  version                     = "1.0.2"
+  version                     = "1.0.3"
   name                        = local.name
   environment                 = local.environment
   label_order                 = local.label_order
@@ -85,7 +85,7 @@ module "log-analytics" {
 # ------------------------------------------------------------------------------
 module "private_dns_zone" {
   source              = "terraform-az-modules/private-dns/azurerm"
-  version             = "1.0.4"
+  version             = "1.0.5"
   name                = local.name
   environment         = local.environment
   resource_group_name = module.resource_group.resource_group_name
@@ -103,7 +103,7 @@ module "private_dns_zone" {
 # ------------------------------------------------------------------------------
 module "vault" {
   source                        = "terraform-az-modules/key-vault/azurerm"
-  version                       = "1.1.0"
+  version                       = "2.3.0"
   name                          = local.name
   environment                   = local.environment
   label_order                   = local.label_order
