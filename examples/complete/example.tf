@@ -85,7 +85,7 @@ module "log-analytics" {
 # ------------------------------------------------------------------------------
 module "private_dns_zone" {
   source              = "terraform-az-modules/private-dns/azurerm"
-  version             = "1.0.5"
+  version             = "1.0.6"
   name                = local.name
   environment         = local.environment
   resource_group_name = module.resource_group.resource_group_name
