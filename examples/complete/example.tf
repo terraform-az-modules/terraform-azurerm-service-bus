@@ -71,7 +71,7 @@ module "subnet" {
 
 module "log-analytics" {
   source                      = "terraform-az-modules/log-analytics/azurerm"
-  version                     = "1.0.3"
+  version                     = "2.0.0"
   name                        = local.name
   environment                 = local.environment
   label_order                 = local.label_order
