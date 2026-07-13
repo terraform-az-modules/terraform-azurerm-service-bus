@@ -336,10 +336,10 @@ resource "azurerm_monitor_diagnostic_setting" "primary_diag" {
 }
 
 #------------------------------------------------------------------
-# azurerm monitoring diagnostics  - Default is "false" Secondary
+# azurerm monitoring diagnostics (Secondary)  - Default is "false" 
 #------------------------------------------------------------------
 resource "azurerm_monitor_diagnostic_setting" "secondary_diag" {
-  count = var.enabled && var.enable_diagnostic && var.enable_disaster_recovery_config ? 1 : 0
+  count = var.enabled && var.enable_diagnostic && var.enable_disaster_recovery_config  ? 1 : 0
   name  = var.resource_position_prefix ? format("diag-log-%s", azurerm_servicebus_namespace.secondary[0].name) : format("%s-diag-log", azurerm_servicebus_namespace.secondary[0].name)
 
   target_resource_id             = azurerm_servicebus_namespace.secondary[0].id
