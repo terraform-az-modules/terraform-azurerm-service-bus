@@ -22,7 +22,7 @@ module "labels" {
 ##-----------------------------------------------------------------------------
 resource "azurerm_key_vault_key" "main" {
   depends_on      = [azurerm_role_assignment.identity_assigned, azurerm_user_assigned_identity.identity]
-  count           = var.enabled ? 1 : 0
+  count           = var.enabled && var.encryption ? 1 : 0
   name            = var.resource_position_prefix ? format("cmk-key-servicebus-%s", local.name) : format("%s-cmk-key-servicebus", local.name)
   key_vault_id    = var.key_vault_id
   key_type        = var.key_type
@@ -170,7 +170,7 @@ resource "azurerm_servicebus_namespace_authorization_rule" "main" {
 }
 
 resource "azurerm_servicebus_namespace_customer_managed_key" "main" {
-  count                             = var.enabled && var.encryption && try(azurerm_servicebus_namespace.primary[0].identity[0].type == "SystemAssigned", false) ? 1 : 0
+  count                             = var.enabled && var.encryption ? 1 : 0
   namespace_id                      = azurerm_servicebus_namespace.primary[0].id
   key_vault_key_id                  = azurerm_key_vault_key.main[0].id
   infrastructure_encryption_enabled = var.infrastructure_encryption_enabled
