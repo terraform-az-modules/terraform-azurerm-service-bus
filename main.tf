@@ -65,7 +65,7 @@ resource "azurerm_user_assigned_identity" "identity" {
 
 resource "azurerm_servicebus_namespace" "primary" {
   count                         = var.enabled ? 1 : 0
-  name                          = format(var.resource_position_prefix ? "servicebus-ns-primary-%s" : "%s-primary-ns-servicebus", local.name)
+  name                          = var.enable_disaster_recovery_config ? format(var.resource_position_prefix ? "servicebus-ns-primary-%s" : "%s-primary-ns-servicebus", local.name) : format(var.resource_position_prefix ? "servicebus-ns-%s" : "%s-ns-servicebus", local.name)
   location                      = var.location
   resource_group_name           = var.resource_group_name
   sku                           = var.sku
@@ -306,12 +306,43 @@ resource "azurerm_servicebus_queue_authorization_rule" "main" {
 #------------------------------------------------------------------
 # azurerm monitoring diagnostics  - Default is "false"
 #------------------------------------------------------------------
-
-resource "azurerm_monitor_diagnostic_setting" "web_app_diag" {
+resource "azurerm_monitor_diagnostic_setting" "primary_diag" {
   count = var.enabled && var.enable_diagnostic ? 1 : 0
-  name  = var.resource_position_prefix ? format("servicebus-diag-%s", local.name) : format("%s-diag-servicebus", local.name)
+  name  = var.resource_position_prefix ? format("diag-log-%s", azurerm_servicebus_namespace.primary[0].name) : format("%s-diag-log", azurerm_servicebus_namespace.primary[0].name)
 
   target_resource_id             = azurerm_servicebus_namespace.primary[0].id
+  storage_account_id             = var.storage_account_id
+  log_analytics_workspace_id     = var.log_analytics_workspace_id
+  eventhub_name                  = var.eventhub_name
+  eventhub_authorization_rule_id = var.eventhub_authorization_rule_id
+
+  dynamic "enabled_metric" {
+    for_each = var.metric_enabled ? ["AllMetrics"] : []
+    content {
+      category = enabled_metric.value
+    }
+  }
+
+  dynamic "enabled_log" {
+    for_each = var.log_enabled ? ["allLogs"] : []
+    content {
+      category_group = enabled_log.value
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [enabled_log, enabled_metric]
+  }
+}
+
+#------------------------------------------------------------------
+# azurerm monitoring diagnostics  - Default is "false" Secondary
+#------------------------------------------------------------------
+resource "azurerm_monitor_diagnostic_setting" "secondary_diag" {
+  count = var.enabled && var.enable_diagnostic && var.enable_disaster_recovery_config ? 1 : 0
+  name  = var.resource_position_prefix ? format("diag-log-%s", azurerm_servicebus_namespace.secondary[0].name) : format("%s-diag-log", azurerm_servicebus_namespace.secondary[0].name)
+
+  target_resource_id             = azurerm_servicebus_namespace.secondary[0].id
   storage_account_id             = var.storage_account_id
   log_analytics_workspace_id     = var.log_analytics_workspace_id
   eventhub_name                  = var.eventhub_name
