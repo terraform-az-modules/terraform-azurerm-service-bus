@@ -199,12 +199,6 @@ variable "encryption" {
   description = "Enable customer-managed encryption for the ServiceBus using Key Vault."
 }
 
-variable "identity_ids" {
-  type        = list(string)
-  default     = null
-  description = "List of user managed identity IDs for MSSQL DB."
-}
-
 variable "network_rule_set" {
   type = object({
     default_action                = optional(string, "Allow")
