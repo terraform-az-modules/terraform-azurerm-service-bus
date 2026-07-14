@@ -177,6 +177,6 @@ module "service_bus" {
   ]
   enable_diagnostic          = true
   log_analytics_workspace_id = module.log-analytics.workspace_id
-  depends_on                 = [module.vault]
   resource_position_prefix   = true
+  encryption                 = true
 }
