@@ -4,6 +4,7 @@
 |------|-------------|------|---------|:--------:|
 | authorization\_rules | List of namespace authorization rules. | <pre>list(object({<br>    name   = string<br>    rights = list(string)<br>  }))</pre> | `[]` | no |
 | capacity | Specifies the capacity. When sku is Premium, capacity can be 1, 2, 4, 8 or 16. When sku is Basic or Standard, capacity can be 0 only. | `number` | `0` | no |
+| cmk\_identity\_type | Identity type for Service Bus CMK. Valid values: UserAssigned or SystemAssigned. | `string` | `"UserAssigned"` | no |
 | custom\_name | Optional custom name to override the base name in tags. | `string` | `null` | no |
 | deployment\_mode | Specifies how the infrastructure/resource is deployed | `string` | `"terraform"` | no |
 | enable\_diagnostic | Enable diagnostic settings for Linux Web App. | `bool` | `false` | no |
@@ -14,7 +15,6 @@
 | eventhub\_authorization\_rule\_id | Eventhub authorization rule id to pass it to destination details of diagnosys setting of NSG. | `string` | `null` | no |
 | eventhub\_name | Eventhub Name to pass it to destination details of diagnosys setting of NSG. | `string` | `null` | no |
 | extra\_tags | Additional tags (e.g. map(`BusinessUnit`,`XYZ`). | `map(string)` | `null` | no |
-| identity\_ids | List of user managed identity IDs for MSSQL DB. | `list(string)` | `null` | no |
 | infrastructure\_encryption\_enabled | Enable double encryption (infrastructure encryption) for Service Bus Namespace | `bool` | `true` | no |
 | key\_expiration\_date | Expiration date for the Key Vault key in ISO 8601 format (for example 2028-12-31T23:59:59Z). | `string` | `null` | no |
 | key\_permissions | Key permissions to assign in Key Vault access policy or RBAC for this key. | `list(string)` | <pre>[<br>  "decrypt",<br>  "encrypt",<br>  "sign",<br>  "unwrapKey",<br>  "verify",<br>  "wrapKey"<br>]</pre> | no |
