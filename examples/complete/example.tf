@@ -140,7 +140,7 @@ module "service_bus" {
   environment                  = local.environment
   resource_group_name          = module.resource_group.resource_group_name
   location                     = module.resource_group.resource_group_location
-  sku                          = "Standard"
+  sku                          = "Premium"
   capacity                     = 1
   premium_messaging_partitions = 1
   key_vault_id                 = module.vault.id
@@ -177,7 +177,6 @@ module "service_bus" {
   ]
   enable_diagnostic          = true
   log_analytics_workspace_id = module.log-analytics.workspace_id
-  depends_on                 = [module.vault]
   resource_position_prefix   = true
-  encryption = false
+  encryption                 = true
 }

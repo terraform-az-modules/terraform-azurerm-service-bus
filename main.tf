@@ -21,14 +21,15 @@ module "labels" {
 ## Key Vault Key - Deploy encryption key for ServiceBus content
 ##-----------------------------------------------------------------------------
 resource "azurerm_key_vault_key" "main" {
-  depends_on      = [azurerm_role_assignment.identity_assigned, azurerm_user_assigned_identity.identity]
   count           = var.enabled && var.encryption ? 1 : 0
+  depends_on      = [azurerm_role_assignment.identity_assigned]
   name            = var.resource_position_prefix ? format("cmk-key-servicebus-%s", local.name) : format("%s-cmk-key-servicebus", local.name)
   key_vault_id    = var.key_vault_id
   key_type        = var.key_type
   key_size        = var.key_size
   expiration_date = var.key_expiration_date
   key_opts        = var.key_permissions
+
   dynamic "rotation_policy" {
     for_each = var.rotation_policy_config.enabled ? [1] : []
     content {
@@ -42,7 +43,7 @@ resource "azurerm_key_vault_key" "main" {
 }
 
 resource "azurerm_role_assignment" "identity_assigned" {
-  count                = var.enabled && var.encryption ? 1 : 0
+  count                = var.enabled && var.encryption && var.cmk_identity_type == "UserAssigned" ? 1 : 0
   principal_id         = azurerm_user_assigned_identity.identity[0].principal_id
   role_definition_name = "Key Vault Crypto User"
   scope                = var.key_vault_id
@@ -53,7 +54,7 @@ resource "azurerm_role_assignment" "identity_assigned" {
 ## Managed Identity - Deploy user-assigned identity for ServiceBus encryption
 ##-----------------------------------------------------------------------------
 resource "azurerm_user_assigned_identity" "identity" {
-  count               = var.enabled && var.encryption ? 1 : 0
+  count               = var.enabled && var.encryption && var.cmk_identity_type == "UserAssigned" ? 1 : 0
   location            = var.location
   name                = var.resource_position_prefix ? format("mid-servicebus-%s", local.name) : format("%s-mid-servicebus", local.name)
   resource_group_name = var.resource_group_name
@@ -76,10 +77,10 @@ resource "azurerm_servicebus_namespace" "primary" {
   minimum_tls_version           = var.minimum_tls_version
 
   dynamic "customer_managed_key" {
-    for_each = var.encryption || var.identity_ids != null ? [1] : []
+    for_each = var.enabled && var.encryption && var.sku == "Premium" && var.cmk_identity_type == "UserAssigned" ? [1] : []
     content {
       key_vault_key_id                  = azurerm_key_vault_key.main[0].id
-      identity_id                       = var.encryption ? azurerm_user_assigned_identity.identity[0].id : var.identity_ids[0]
+      identity_id                       = azurerm_user_assigned_identity.identity[0].id
       infrastructure_encryption_enabled = var.infrastructure_encryption_enabled
     }
   }
@@ -104,9 +105,11 @@ resource "azurerm_servicebus_namespace" "primary" {
   }
 
   identity {
-    type         = var.encryption || var.identity_ids != null ? "SystemAssigned, UserAssigned" : "SystemAssigned"
-    identity_ids = var.encryption ? [azurerm_user_assigned_identity.identity[0].id] : var.identity_ids
+    type = var.enabled && var.encryption && var.cmk_identity_type == "UserAssigned" ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+
+    identity_ids = var.enabled && var.encryption && var.cmk_identity_type == "UserAssigned" ? [azurerm_user_assigned_identity.identity[0].id] : null
   }
+
   tags       = module.labels.tags
   depends_on = [azurerm_key_vault_key.main]
 }
@@ -124,10 +127,10 @@ resource "azurerm_servicebus_namespace" "secondary" {
   minimum_tls_version           = var.minimum_tls_version
 
   dynamic "customer_managed_key" {
-    for_each = var.encryption || var.identity_ids != null ? [1] : []
+    for_each = var.enabled && var.encryption && var.sku == "Premium" && var.cmk_identity_type == "UserAssigned" ? [1] : []
     content {
       key_vault_key_id                  = azurerm_key_vault_key.main[0].id
-      identity_id                       = var.encryption ? azurerm_user_assigned_identity.identity[0].id : var.identity_ids[0]
+      identity_id                       = azurerm_user_assigned_identity.identity[0].id
       infrastructure_encryption_enabled = var.infrastructure_encryption_enabled
     }
   }
@@ -152,9 +155,11 @@ resource "azurerm_servicebus_namespace" "secondary" {
   }
 
   identity {
-    type         = var.encryption || var.identity_ids != null ? "SystemAssigned, UserAssigned" : "SystemAssigned"
-    identity_ids = var.encryption ? [azurerm_user_assigned_identity.identity[0].id] : var.identity_ids
+    type = var.enabled && var.encryption && var.cmk_identity_type == "UserAssigned" ? "SystemAssigned, UserAssigned" : "SystemAssigned"
+
+    identity_ids = var.enabled && var.encryption && var.cmk_identity_type == "UserAssigned" ? [azurerm_user_assigned_identity.identity[0].id] : null
   }
+
   tags       = module.labels.tags
   depends_on = [azurerm_servicebus_namespace.primary]
 }
@@ -170,11 +175,12 @@ resource "azurerm_servicebus_namespace_authorization_rule" "main" {
 }
 
 resource "azurerm_servicebus_namespace_customer_managed_key" "main" {
-  count                             = var.enabled && var.encryption ? 1 : 0
+  count                             = var.enabled && var.encryption && var.sku == "Premium" && var.cmk_identity_type == "SystemAssigned" ? 1 : 0
   namespace_id                      = azurerm_servicebus_namespace.primary[0].id
   key_vault_key_id                  = azurerm_key_vault_key.main[0].id
   infrastructure_encryption_enabled = var.infrastructure_encryption_enabled
 }
+
 
 resource "azurerm_servicebus_namespace_disaster_recovery_config" "main" {
   count                = var.enabled && var.enable_disaster_recovery_config ? 1 : 0
@@ -339,7 +345,7 @@ resource "azurerm_monitor_diagnostic_setting" "primary_diag" {
 # azurerm monitoring diagnostics (Secondary)  - Default is "false" 
 #------------------------------------------------------------------
 resource "azurerm_monitor_diagnostic_setting" "secondary_diag" {
-  count = var.enabled && var.enable_diagnostic && var.enable_disaster_recovery_config  ? 1 : 0
+  count = var.enabled && var.enable_diagnostic && var.enable_disaster_recovery_config ? 1 : 0
   name  = var.resource_position_prefix ? format("diag-log-%s", azurerm_servicebus_namespace.secondary[0].name) : format("%s-diag-log", azurerm_servicebus_namespace.secondary[0].name)
 
   target_resource_id             = azurerm_servicebus_namespace.secondary[0].id

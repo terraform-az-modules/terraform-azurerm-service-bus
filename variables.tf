@@ -63,6 +63,16 @@ variable "deployment_mode" {
 ##-----------------------------------------------------------------------------
 # Key Vault / CMK
 ##-----------------------------------------------------------------------------
+variable "cmk_identity_type" {
+  type        = string
+  default     = "UserAssigned"
+  description = "Identity type for Service Bus CMK. Valid values: UserAssigned or SystemAssigned."
+
+  validation {
+    condition     = contains(["UserAssigned", "SystemAssigned"], var.cmk_identity_type)
+    error_message = "cmk_identity_type must be either UserAssigned or SystemAssigned."
+  }
+}
 
 variable "key_vault_id" {
   type        = string
