@@ -211,13 +211,25 @@ resource "azurerm_servicebus_topic" "main" {
 resource "azurerm_servicebus_topic_authorization_rule" "main" {
   count = var.enabled ? length(local.topic_authorization_rules) : 0
   name  = local.topic_authorization_rules[count.index].name
-  topic_id = lookup(
-    { for t in azurerm_servicebus_topic.main : t.name => t.id },
-    local.topic_authorization_rules[count.index].topic_name
+  topic_id = {
+    for t in azurerm_servicebus_topic.main : t.name => t.id
+  }[local.topic_authorization_rules[count.index].topic_name]
+
+  listen = contains(
+    local.topic_authorization_rules[count.index].rights,
+    "listen"
   )
-  listen     = contains(local.topic_authorization_rules[count.index].rights, "listen")
-  send       = contains(local.topic_authorization_rules[count.index].rights, "send")
-  manage     = contains(local.topic_authorization_rules[count.index].rights, "manage")
+
+  send = contains(
+    local.topic_authorization_rules[count.index].rights,
+    "send"
+  )
+
+  manage = contains(
+    local.topic_authorization_rules[count.index].rights,
+    "manage"
+  )
+
   depends_on = [azurerm_servicebus_topic.main]
 }
 
@@ -251,13 +263,15 @@ resource "azurerm_servicebus_subscription" "main" {
 resource "azurerm_servicebus_subscription_rule" "main" {
   count = var.enabled ? length(local.topic_subscription_rules) : 0
   name  = local.topic_subscription_rules[count.index].name
-  subscription_id = lookup(
-    { for s in azurerm_servicebus_subscription.main : "${s.topic_name}-${s.name}" => s.id },
-    "${local.topic_subscription_rules[count.index].topic_name}-${local.topic_subscription_rules[count.index].subscription_name}"
-  )
+  subscription_id = {
+    for s in azurerm_servicebus_subscription.main : "${s.topic_name}-${s.name}" => s.id
+  }["${local.topic_subscription_rules[count.index].topic_name}-${local.topic_subscription_rules[count.index].subscription_name}"]
+
   filter_type = local.topic_subscription_rules[count.index].sql_filter != "" ? "SqlFilter" : null
-  sql_filter  = local.topic_subscription_rules[count.index].sql_filter
-  action      = local.topic_subscription_rules[count.index].action
+
+  sql_filter = local.topic_subscription_rules[count.index].sql_filter
+
+  action = local.topic_subscription_rules[count.index].action
 
   dynamic "correlation_filter" {
     for_each = local.topic_subscription_rules[count.index].correlation_filter == "CorrelationFilter" && local.topic_subscription_rules[count.index].correlation_filter != null ? [local.topic_subscription_rules[count.index].correlation_filter] : []
